@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
 
 	if (!opt.hasOptions())
 	{
-		daemonize();
+		Imp::daemonize();
 
 		std::thread cleanup_thread(daily_cleanup_worker);
 		cleanup_thread.detach();
@@ -189,7 +189,7 @@ int main(int argc, char *argv[])
 
 	if (opt.getFlag("stop") || opt.getFlag('s'))
 	{
-		stopDaemon();
+		Imp::stopDaemon();
 		exit(EXIT_SUCCESS);
 	}
 
@@ -218,7 +218,7 @@ int main(int argc, char *argv[])
 	{
 		std::string dir = std::string(opt.getValue("add"));
 		DB::addDir(DB::DirAction::ADD, DB::DirType::MONITOR, dir);
-		askDaemonToRereadConfig();
+		Imp::askDaemonToRereadConfig();
 		exit(EXIT_SUCCESS);
 	}
 
@@ -226,7 +226,7 @@ int main(int argc, char *argv[])
 	{
 		std::string dir = std::string(opt.getValue("remove"));
 		DB::addDir(DB::DirAction::REMOVE, DB::DirType::MONITOR, dir);
-		askDaemonToRereadConfig();
+		Imp::askDaemonToRereadConfig();
 		exit(EXIT_SUCCESS);
 	}
 
@@ -234,7 +234,7 @@ int main(int argc, char *argv[])
 	{
 		std::string dir = std::string(opt.getValue("ignore"));
 		DB::addDir(DB::DirAction::ADD, DB::DirType::IGNORE, dir);
-		askDaemonToRereadConfig();
+		Imp::askDaemonToRereadConfig();
 		exit(EXIT_SUCCESS);
 	}
 
@@ -242,7 +242,7 @@ int main(int argc, char *argv[])
 	{
 		std::string dir = std::string(opt.getValue("pay_attention"));
 		DB::addDir(DB::DirAction::REMOVE, DB::DirType::IGNORE, dir);
-		askDaemonToRereadConfig();
+		Imp::askDaemonToRereadConfig();
 		exit(EXIT_SUCCESS);
 	}
 

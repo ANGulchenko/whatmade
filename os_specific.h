@@ -20,7 +20,8 @@
 #include <limits.h>
 #include <filesystem>
 
-const char* PID_FILE = "/tmp/whomade.pid";
+#include "Imp/Imp.h"
+
 
 bool is_recent_creation(int fd)
 {
@@ -167,122 +168,10 @@ int fanotify_setup(const std::set<std::string>& paths_to_control)
 	return fan_fd;
 }
 
-
-
-
-void stopDaemon()
-{
-	std::ifstream pid_file(PID_FILE);
-	pid_t pid;
-	if (pid_file >> pid) {
-		kill(pid, SIGTERM);
-		std::cout << "Daemon stopped\n";
-		unlink(PID_FILE);
-	} else {
-		std::cerr << "No PID file found\n";
-	}
-}
-
-void askDaemonToRereadConfig()
-{
-	std::ifstream pid_file(PID_FILE);
-	pid_t pid;
-	if (pid_file >> pid)
-	{
-		kill(pid, SIGUSR1);
-		std::cout << "Update Config sygnal is sent to pid= "<< pid <<std::endl;
-		unlink(PID_FILE);
-	} else {
-		std::cerr << "No PID file found\n";
-	}
-}
-
-void statusDaemon() {
-	std::ifstream pid_file(PID_FILE);
-	pid_t pid;
-	if (pid_file >> pid) {
-		if (kill(pid, 0) == 0)
-			std::cout << "Daemon is running (PID " << pid << ")\n";
-		else
-			std::cout << "Daemon not running\n";
-	} else {
-		std::cout << "Daemon not running\n";
-	}
-}
-
-void cleanup()
-{
-	std::ifstream pid_file(PID_FILE);
-	pid_t pid = -1;
-	if (pid_file >> pid)
-	{
-		if (pid != -1)
-		{
-			close(pid);
-			unlink(PID_FILE);  // Optional: remove file on exit
-		}
-	}
-}
-
-bool already_running()
-{
-	pid_t pid_fd = open(PID_FILE, O_RDWR | O_CREAT, 0644);
-	if (pid_fd < 0)
-	{
-		std::cerr << "Unable to open PID file\n";
-		return true;
-	}
-
-	// Try to get an exclusive lock
-	if (int res = flock(pid_fd, LOCK_EX | LOCK_NB); res < 0)
-	{
-		std::cerr << "Another instance is already running.\n";
-		return true;
-	}
-
-	// Truncate and write PID
-	ftruncate(pid_fd, 0);
-	std::string pid_str = std::to_string(getpid()) + "\n";
-	write(pid_fd, pid_str.c_str(), pid_str.size());
-
-	return false;
-}
-
-void daemonize()
-{
-	if (already_running())
-	{
-		exit(EXIT_FAILURE);
-	}
-
-	pid_t pid = fork();
-	if (pid < 0) exit(EXIT_FAILURE);    // Fork failed
-	if (pid > 0) exit(EXIT_SUCCESS);    // Exit parent
-
-	setsid();                           // Create new session
-	umask(0);                           // Reset file mode mask
-	chdir("/");                         // Optional: change working dir
-
-	// Second fork to prevent reacquiring a terminal
-	pid = fork();
-	if (pid < 0) exit(EXIT_FAILURE);
-	if (pid > 0) exit(EXIT_SUCCESS);
-
-	// Close standard file descriptors
-	close(STDIN_FILENO);
-	close(STDOUT_FILENO);
-	close(STDERR_FILENO);
-
-	// Write PID file
-	std::ofstream pid_file(PID_FILE);
-	pid_file << getpid() << "\n";
-	pid_file.close();
-}
-
 void handle_signal(int signum)
 {
 	std::cerr << "Handle signal. Cleanup()\n";
-	cleanup();
+	Imp::cleanup();
 	std::exit(signum);
 }
 
