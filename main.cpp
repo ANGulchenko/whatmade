@@ -23,15 +23,16 @@
 #include "os_specific.h"
 #include "sqlite_specific.h"
 #include "AnyOption/anyoption.h"
+#include "Log/logger.h"
 
 using std::string;
 using std::vector;
 using std::set;
 
-set<string> paths_to_monitor {"/home/astahl/.config", "/home/astahl/.cache"};
+set<string> paths_to_monitor {"/home/astahl/.config"};
 set<string> paths_to_ignore {"/home/astahl/.cache/mozilla"};
 
-
+string log_filename {"/var/log/whomade/whomade.log"};
 
 bool shouldFilenameBeProcessed(const string& filename)
 {
@@ -140,6 +141,7 @@ void daily_cleanup_worker()
 
 int main(int argc, char *argv[])
 {
+	Logger::init("whomade");
 	DB::connect();
 
 	signal(SIGINT, handle_signal);

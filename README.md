@@ -16,6 +16,6 @@ While this does not make the daemon useless, it does mean that the information
 it provides should be interpreted with care — critical thinking is still 
 advised when reviewing the results.
 
-## Dependancies?
+## Dependencies?
 
-Only libsqlite3.
+ - libsqlite3.

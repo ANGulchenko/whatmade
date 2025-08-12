@@ -1,4 +1,5 @@
 #include "Imp.h"
+#include "../Log/logger.h"
 
 #include <fstream>
 #include <iostream>
@@ -10,12 +11,14 @@ void Imp::stopDaemon()
 {
 	std::ifstream pid_file(PID_FILE);
 	pid_t pid;
-	if (pid_file >> pid) {
+	if (pid_file >> pid)
+	{
 		kill(pid, SIGTERM);
-		std::cout << "Daemon stopped\n";
+		Logger::info("SIGTERM signal sended to daemon. PID={}", pid);
 		unlink(PID_FILE.c_str());
-	} else {
-		std::cerr << "No PID file found\n";
+	} else
+	{
+		Logger::error("No PID file found\n");
 	}
 }
 
@@ -26,23 +29,27 @@ void Imp::askDaemonToRereadConfig()
 	if (pid_file >> pid)
 	{
 		kill(pid, SIGUSR1);
-		std::cout << "Update Config sygnal is sent to pid= "<< pid <<std::endl;
+		Logger::info("SIGUSR1 signal sended to daemon (ask for config reread). PID={}", pid);
 		unlink(PID_FILE.c_str());
-	} else {
-		std::cerr << "No PID file found\n";
+	} else
+	{
+		Logger::error("No PID file found\n");
 	}
 }
 
-void Imp::statusDaemon() {
+void Imp::statusDaemon()
+{
 	std::ifstream pid_file(PID_FILE);
 	pid_t pid;
-	if (pid_file >> pid) {
+	if (pid_file >> pid)
+	{
 		if (kill(pid, 0) == 0)
-			std::cout << "Daemon is running (PID " << pid << ")\n";
+			std::println("Daemon is running (PID {})", pid);
 		else
-			std::cout << "Daemon not running\n";
-	} else {
-		std::cout << "Daemon not running\n";
+			std::println("Daemon not running\n");
+	} else
+	{
+		std::println("Daemon not running\n");
 	}
 }
 
@@ -55,7 +62,7 @@ void Imp::cleanup()
 		if (pid != -1)
 		{
 			close(pid);
-			unlink(PID_FILE.c_str());  // Optional: remove file on exit
+			unlink(PID_FILE.c_str());
 		}
 	}
 }
@@ -65,14 +72,14 @@ bool Imp::already_running()
 	pid_t pid_fd = open(PID_FILE.c_str(), O_RDWR | O_CREAT, 0644);
 	if (pid_fd < 0)
 	{
-		std::cerr << "Unable to open PID file\n";
+		Logger::error("Unable to open PID file.\n");
 		return true;
 	}
 
 	// Try to get an exclusive lock
 	if (int res = flock(pid_fd, LOCK_EX | LOCK_NB); res < 0)
 	{
-		std::cerr << "Another instance is already running.\n";
+		Logger::error("Another instance is already running.\n");
 		return true;
 	}
 
