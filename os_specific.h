@@ -19,6 +19,7 @@
 #include <sys/file.h>
 #include <limits.h>
 #include <filesystem>
+#include <functional>
 
 #include "Imp/Imp.h"
 
@@ -187,4 +188,50 @@ std::vector<std::string> get_filenames_to_delete(const std::vector<std::string>&
 	}
 
 	return result;
+}
+
+void startWatch(const std::set<std::string>& paths_to_monitor,
+				const std::set<std::string>& paths_to_ignore,
+				std::function<void(const std::string& filename, const std::string& process_name)> file_processor)
+{
+
+	int fan_fd = fanotify_setup(paths_to_monitor);
+
+
+	char buffer[4096];
+	while (true) {
+		ssize_t len = read(fan_fd, buffer, sizeof(buffer));
+		if (len <= 0) {
+			perror("read");
+			continue;
+		}
+
+		struct fanotify_event_metadata *metadata;
+		metadata = (struct fanotify_event_metadata *)buffer;
+		while (FAN_EVENT_OK(metadata, len)) {
+			if (metadata->fd >= 0 && metadata->mask & FAN_OPEN)
+			{
+				std::optional<std::string> app_name = try_get_process_cmdline(metadata->pid);
+				if (is_recent_creation(metadata->fd))
+				{
+					char path[PATH_MAX];
+					snprintf(path, sizeof(path), "/proc/self/fd/%d", metadata->fd);
+					char real_path[PATH_MAX];
+					//std::cout << real_path << " " << app_name << std::endl;
+					ssize_t r = readlink(path, real_path, sizeof(real_path) - 1);
+					if (r > 0) {
+						real_path[r] = '\0';
+						if (app_name)
+						{
+							file_processor(real_path, app_name.value());
+						}
+					}
+				}
+				close(metadata->fd);
+			}
+			metadata = FAN_EVENT_NEXT(metadata, len);
+		}
+	}
+
+	close(fan_fd);
 }

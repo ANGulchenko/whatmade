@@ -14,7 +14,7 @@ void Imp::stopDaemon()
 	if (pid_file >> pid)
 	{
 		kill(pid, SIGTERM);
-		Logger::info("SIGTERM signal sended to daemon. PID={}", pid);
+		Logger::info("SIGTERM signal sended to daemon. PID=", pid);
 		unlink(PID_FILE.c_str());
 	} else
 	{
@@ -29,7 +29,7 @@ void Imp::askDaemonToRereadConfig()
 	if (pid_file >> pid)
 	{
 		kill(pid, SIGUSR1);
-		Logger::info("SIGUSR1 signal sended to daemon (ask for config reread). PID={}", pid);
+		Logger::info("SIGUSR1 signal sended to daemon (ask for config reread). PID=", pid);
 		unlink(PID_FILE.c_str());
 	} else
 	{
@@ -44,7 +44,7 @@ void Imp::statusDaemon()
 	if (pid_file >> pid)
 	{
 		if (kill(pid, 0) == 0)
-			std::println("Daemon is running (PID {})", pid);
+			std::println("Daemon is running PID= ", pid);
 		else
 			std::println("Daemon not running\n");
 	} else

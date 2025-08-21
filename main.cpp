@@ -1,21 +1,4 @@
-// I know who created this file
 
-#include <print>
-#include <vector>
-#include <set>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <cstring>
-#include <cstdlib>
-#include <unistd.h>
-#include <fcntl.h>
-#include <dirent.h>
-#include <sys/fanotify.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/time.h>
-#include <limits.h>
 #include <thread>
 #include <chrono>
 
@@ -25,16 +8,10 @@
 #include "AnyOption/anyoption.h"
 #include "Log/logger.h"
 
-using std::string;
-using std::vector;
-using std::set;
+std::set<std::string> paths_to_monitor {"/home/astahl/.config"};
+std::set<std::string> paths_to_ignore {"/home/astahl/.cache/mozilla"};
 
-set<string> paths_to_monitor {"/home/astahl/.config"};
-set<string> paths_to_ignore {"/home/astahl/.cache/mozilla"};
-
-string log_filename {"/var/log/whomade/whomade.log"};
-
-bool shouldFilenameBeProcessed(const string& filename)
+bool shouldFilenameBeProcessed(const std::string& filename)
 {
 	// Check if the filename is to be checked according to
 	// the paths_to_control array.
@@ -42,7 +19,7 @@ bool shouldFilenameBeProcessed(const string& filename)
 	bool is_filename_good = false;
 
 	// Check if this filename is in our watch-list
-	for (const string& path_to_monitor: paths_to_monitor)
+	for (const std::string& path_to_monitor: paths_to_monitor)
 	{
 		if (filename.starts_with(path_to_monitor))
 		{
@@ -51,7 +28,7 @@ bool shouldFilenameBeProcessed(const string& filename)
 	}
 
 	// Check if this filename is in our ignore-list
-	for (const string& path_to_ignore: paths_to_ignore)
+	for (const std::string& path_to_ignore: paths_to_ignore)
 	{
 		if (filename.starts_with(path_to_ignore))
 		{
@@ -62,7 +39,7 @@ bool shouldFilenameBeProcessed(const string& filename)
 	return is_filename_good;
 }
 
-void processFile(const string& filename, const string& process_name)
+void processFile(const std::string& filename, const std::string& process_name)
 {
 	if (!shouldFilenameBeProcessed(filename))
 	{
@@ -70,52 +47,9 @@ void processFile(const string& filename, const string& process_name)
 	}
 
 	DB::add_filename_process_pair(filename, process_name);
-	std::println("[NEW FILE] filename={} PROC={}", filename, process_name);
 }
 
-void startWatch()
-{
-	DB::get_directories(paths_to_monitor, paths_to_ignore);
-	int fan_fd = fanotify_setup(paths_to_monitor);
 
-
-	char buffer[4096];
-	while (true) {
-		ssize_t len = read(fan_fd, buffer, sizeof(buffer));
-		if (len <= 0) {
-			perror("read");
-			continue;
-		}
-
-		struct fanotify_event_metadata *metadata;
-		metadata = (struct fanotify_event_metadata *)buffer;
-		while (FAN_EVENT_OK(metadata, len)) {
-			if (metadata->fd >= 0 && metadata->mask & FAN_OPEN)
-			{
-				std::optional<string> app_name = try_get_process_cmdline(metadata->pid);
-				if (is_recent_creation(metadata->fd))
-				{
-					char path[PATH_MAX];
-					snprintf(path, sizeof(path), "/proc/self/fd/%d", metadata->fd);
-					char real_path[PATH_MAX];
-					//std::cout << real_path << " " << app_name << std::endl;
-					ssize_t r = readlink(path, real_path, sizeof(real_path) - 1);
-					if (r > 0) {
-						real_path[r] = '\0';
-						if (app_name)
-						{
-							processFile(real_path, app_name.value());
-						}
-					}
-				}
-				close(metadata->fd);
-			}
-			metadata = FAN_EVENT_NEXT(metadata, len);
-		}
-	}
-
-	close(fan_fd);
-}
 
 void handle_update_signal(int /*signum*/)
 {
@@ -130,15 +64,6 @@ void run_cleanup()
 	DB::remove_these_filenames(nonexistent_filenames);
 }
 
-void daily_cleanup_worker()
-{
-	while (true) {
-		std::this_thread::sleep_for(std::chrono::hours(1));
-		run_cleanup();
-	}
-}
-
-
 int main(int argc, char *argv[])
 {
 	Logger::init("whomade");
@@ -146,9 +71,6 @@ int main(int argc, char *argv[])
 
 	signal(SIGINT, handle_signal);
 	signal(SIGTERM, handle_signal);
-	signal(SIGUSR1, handle_update_signal);
-
-
 
 	AnyOption opt;
 	opt.addUsage("I know who made this file");
@@ -182,11 +104,22 @@ int main(int argc, char *argv[])
 	if (!opt.hasOptions())
 	{
 		Imp::daemonize();
+		signal(SIGUSR1, handle_update_signal);
 
-		std::thread cleanup_thread(daily_cleanup_worker);
+		std::thread cleanup_thread(
+			[]()
+			{
+				while (true)
+				{
+					std::this_thread::sleep_for(std::chrono::hours(1));
+					run_cleanup();
+				}
+			}
+		);
+
 		cleanup_thread.detach();
-
-		startWatch();
+		DB::get_directories(paths_to_monitor, paths_to_ignore);
+		startWatch(paths_to_monitor, paths_to_ignore, processFile);
 	}
 
 	if (opt.getFlag("stop") || opt.getFlag('s'))

@@ -7,17 +7,8 @@
 class Logger
 {
 public:
-	// Call once at program start
-	static void init(const char* ident)
-	{
-		openlog(ident, LOG_PID | LOG_CONS, LOG_DAEMON);
-	}
-
-	// Call once at program shutdown
-	static void shutdown()
-	{
-		closelog();
-	}
+	static void init(const char* ident);
+	static void shutdown();
 
 	template<typename... Args>
 	static void info(Args&&... args) {
