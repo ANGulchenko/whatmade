@@ -2,7 +2,8 @@
 
 Whomade is a Linux daemon that monitors user-specified directories and records 
 which process created each file. This makes it easy to later identify the origin 
-of files with suspicious or unexpected names.
+of files with suspicious or unexpected names.    
+The main idea was to monitor and identify files in the dot directories in the /home.
 
 ## Nuances?
 
