@@ -22,8 +22,8 @@ Upon the first start the daemon will create the database and fill the monitor/ig
 fields with **placeholders**. You must replace them with your data. Use --help for reference how.    
 Example:     
 whomade --list // Will show you the current situation     
-whomade --remove <copy the placeholder here>    
-whomade --add <use the real path you're interested in>    
+whomade --remove "copy the placeholder here"    
+whomade --add "use the real path you're interested in"    
 
 ## Dependencies?
 
