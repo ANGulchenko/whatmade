@@ -20,7 +20,7 @@ advised when reviewing the results.
 
 Upon the first start the daemon will create the database and fill the monitor/ignore
 fields with **placeholders**. You must replace them with your data. Use --help for reference how.    
-Example:
+Example:     
 whomade --list // Will show you the current situation     
 whomade --remove <copy the placeholder here>    
 whomade --add <use the real path you're interested in>    
