@@ -122,6 +122,26 @@ int main(int argc, char *argv[])
 		startWatch(paths_to_monitor, paths_to_ignore, processFile);
 	}
 
+	if (opt.getFlag("non_daemonize") || opt.getFlag('n'))
+	{
+		signal(SIGUSR1, handle_update_signal);
+
+		std::thread cleanup_thread(
+			[]()
+			{
+				while (true)
+				{
+					std::this_thread::sleep_for(std::chrono::hours(1));
+					run_cleanup();
+				}
+			}
+		);
+
+		cleanup_thread.detach();
+		DB::get_directories(paths_to_monitor, paths_to_ignore);
+		startWatch(paths_to_monitor, paths_to_ignore, processFile);
+	}
+
 	if (opt.getFlag("stop") || opt.getFlag('s'))
 	{
 		Imp::stopDaemon();
