@@ -26,6 +26,13 @@ whomade --list // Will show you the current situation
 whomade --remove "copy the placeholder here"    
 whomade --add "use the real path you're interested in"    
 
+## Convenience?
+
+I offer you an extension for the Caja FM (from MATE DE, fork of Gnome 2) where you
+can just right-click on file and ask "Who made this?" from a menu.
+
+![screenshot](./FM_Extensions/MATE-CAJA/whomade_win.png)
+
 ## Dependencies?
 
  - libsqlite3.
