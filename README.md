@@ -7,7 +7,7 @@ The main idea was to monitor and identify files in the dot directories in the /h
 
 ## Nuances?
 
-Whomade uses the Linux fanotify API, which can be a bit… unusual and doesn’t 
+Whatmade uses the Linux fanotify API, which can be a bit… unusual and doesn’t 
 always behave as you might expect. At present, the daemon doesn’t strictly 
 detect file **creation** events. Instead, it logs processes that **access** 
 files (applying some trivial filters like analyzing the age of file), which can 
@@ -16,6 +16,8 @@ sometimes lead to false positives.
 While this does not make the daemon useless, it does mean that the information 
 it provides should be interpreted with care — critical thinking is still 
 advised when reviewing the results.
+
+This daemon stores process data in the Extended File Attributes.
 
 ## Initial setup
 
