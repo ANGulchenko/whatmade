@@ -53,12 +53,12 @@ ConfigSingleton::ConfigSingleton()
 		const char* default_config =
 		R"CONFIG(
 monitor = (
-	"/home/astahl/.config",
-	"/home/astahl/.cache"
+	"/home/user/.config",
+	"/home/user/.cache"
 );
 
 ignore = (
-	"/home/astahl/.cache/mozilla"
+	"/home/user/.cache/mozilla"
 );
 		)CONFIG";
 
