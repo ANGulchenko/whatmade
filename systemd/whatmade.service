@@ -13,8 +13,6 @@ RestartSec=5
 # Security hardening (optional, but good practice)
 User=root
 NoNewPrivileges=yes
-ProtectSystem=full
-ProtectHome=true
 
 [Install]
 WantedBy=multi-user.target
