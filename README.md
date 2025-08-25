@@ -14,6 +14,16 @@ The main idea was to monitor and identify files in the dot directories in the /h
   make
 ```
 
+## Autostart through systemd?
+
+Copy the ./systemd/whatmade.service file to /etc/systemd/system/ and enable the service with
+these commands:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable whatmade.service
+sudo systemctl start whatmade.service
+```
+
 ## Nuances?
 
 Whatmade uses the Linux fanotify API, which can be a bit… unusual and doesn’t 
