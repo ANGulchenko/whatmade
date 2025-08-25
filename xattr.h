@@ -79,8 +79,6 @@ public:
 
 		std::string result (buf.begin(), buf.begin() + ret);
 
-		std::println("{}", result);
-
 		return result;
 	}
 };

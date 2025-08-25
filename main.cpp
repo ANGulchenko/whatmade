@@ -44,17 +44,13 @@ void processFile(const std::string& filename, const std::string& process_name)
 
 int main(int argc, char *argv[])
 {
-	if (XAttr::isWorking())
-	{
-		std::println("XATTR works");
-	}else
+	if (!XAttr::isWorking())
 	{
 		std::println("XATTR doesn't work");
+		exit(EXIT_FAILURE);
 	}
 
 	ConfigSingleton::instance();
-
-
 	Logger::init("whatmade");
 
 	AnyOption opt;
