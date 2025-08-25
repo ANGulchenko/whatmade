@@ -5,6 +5,15 @@ which process created each file. This makes it easy to later identify the origin
 of files with suspicious or unexpected names.    
 The main idea was to monitor and identify files in the dot directories in the /home.
 
+## Building?
+
+```bash
+  mkdir build
+  cd build
+  cmake ..
+  make
+```
+
 ## Nuances?
 
 Whatmade uses the Linux fanotify API, which can be a bit… unusual and doesn’t 
