@@ -1,6 +1,6 @@
-## What is whomade?
+## What is whatmade?
 
-Whomade is a Linux daemon that monitors user-specified directories and records 
+Whatmade is a Linux daemon that monitors user-specified directories and records 
 which process created each file. This makes it easy to later identify the origin 
 of files with suspicious or unexpected names.    
 The main idea was to monitor and identify files in the dot directories in the /home.
@@ -19,20 +19,17 @@ advised when reviewing the results.
 
 ## Initial setup
 
-Upon the first start the daemon will create the database and fill the monitor/ignore
-fields with **placeholders**. You must replace them with your data. Use --help for reference how.    
-Example:     
-whomade --list // Will show you the current situation     
-whomade --remove "copy the placeholder here"    
-whomade --add "use the real path you're interested in"    
+Upon the first start the daemon will create the config file and fill the monitor/ignore
+fields with **placeholders**. You must replace them with your data. 
 
 ## Convenience?
 
 I offer you an extension for the Caja FM (from MATE DE, fork of Gnome 2) where you
-can just right-click on file and ask "Who made this?" from a menu.
+can just right-click on file and ask "What made this?" from a menu.
+Put the file in ~/.local/share/caja-python/extensions and restart the Caja ("caja -q")
 
-![screenshot](./FM_Extensions/MATE-CAJA/whomade_win.png)
+![screenshot](./FM_Extensions/MATE-CAJA/whatmade_win.png)
 
 ## Dependencies?
 
- - libsqlite3.
+ - libconfig++

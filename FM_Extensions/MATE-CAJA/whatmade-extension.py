@@ -1,7 +1,7 @@
 from gi.repository import Caja, GObject, Gtk
 import subprocess
 
-class WhoMadeExtension(GObject.GObject, Caja.MenuProvider):
+class WhatMadeExtension(GObject.GObject, Caja.MenuProvider):
     def __init__(self):
         pass
 
@@ -12,8 +12,8 @@ class WhoMadeExtension(GObject.GObject, Caja.MenuProvider):
 
         file = files[0]
         item = Caja.MenuItem(
-            name="WhoMadeExtension::WhoMade",
-            label="Who made this?",
+            name="WhatMadeExtension::WhatMade",
+            label="What made this?",
             tip="Show which process created this file"
         )
         item.connect("activate", self.menu_activate_cb, file)
@@ -25,7 +25,7 @@ class WhoMadeExtension(GObject.GObject, Caja.MenuProvider):
         # Call my daemon
         try:
             result = subprocess.check_output(
-                ["whomade", "-w", filepath], text=True
+                ["whatmade", "-w", filepath], text=True
             ).strip()
             result = result[result.find('name:')+5:]
         except Exception as e:
@@ -37,7 +37,7 @@ class WhoMadeExtension(GObject.GObject, Caja.MenuProvider):
             flags=0,
             message_type=Gtk.MessageType.INFO,
             buttons=Gtk.ButtonsType.OK,
-            text="Who made this file?",
+            text="What made this file?",
         )
         dialog.format_secondary_text(f"{filepath}\n\nCreated by: {result}")
         dialog.run()
