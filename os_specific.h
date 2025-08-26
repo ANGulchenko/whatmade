@@ -34,25 +34,34 @@ bool is_recent_creation(int fd)
 	return (now - st.st_ctime) < 2;  // Created within last 2 seconds
 }
 
-std::string get_mount_point(const std::string &path) {
+std::set<std::string> get_mount_point(const std::string &path)
+{
+	std::set<std::string> result;
+	std::set<std::string> all_mounting_points;
+
 	char resolved[PATH_MAX];
-	if (!realpath(path.c_str(), resolved)) {
+	if (!realpath(path.c_str(), resolved))
+	{
 		perror("realpath");
-		return "/";
+		result.insert("/");
+		return result;
 	}
 	std::string abs_path = resolved;
 
 	std::ifstream file("/proc/self/mountinfo");
-	if (!file.is_open()) {
+	if (!file.is_open())
+	{
 		perror("open mountinfo");
-		return "/";
+		result.insert("/");
+		return result;
 	}
 
 	std::string best_match;
 	size_t best_len = 0;
 
 	std::string line;
-	while (std::getline(file, line)) {
+	while (std::getline(file, line))
+	{
 		std::istringstream iss(line);
 		std::string discard;
 		std::string mount_point;
@@ -67,17 +76,35 @@ std::string get_mount_point(const std::string &path) {
 			}
 		}
 
-		// Find the longest mount point that is a prefix of abs_path
-		if (abs_path.rfind(mount_point, 0) == 0) {
+		all_mounting_points.insert(mount_point);
+	}
+
+	// Looking for the mount point of the user dir
+	for (auto& mount_point: all_mounting_points)
+	{
+		if (abs_path.rfind(mount_point, 0) == 0)
+		{
 			size_t len = mount_point.size();
-			if (len > best_len) {
+			if (len > best_len)
+			{
 				best_len = len;
 				best_match = mount_point;
 			}
 		}
 	}
 
-	return best_match.empty() ? "/" : best_match;
+	result.insert(best_match);
+
+	// Looking for the mount sub points
+	for (auto& mount_point: all_mounting_points)
+	{
+		if (mount_point.find(abs_path) == 0)
+		{
+			result.insert(mount_point);
+		}
+	}
+
+	return result;
 }
 
 
@@ -143,7 +170,8 @@ int fanotify_setup(const std::set<std::string>& paths_to_control)
 
 	for(const std::string& path: paths_to_control)
 	{
-		mount_points.insert(get_mount_point(path));
+		std::set<std::string> tmp_mnt_points = get_mount_point(path);
+		mount_points.insert(tmp_mnt_points.begin(), tmp_mnt_points.end());
 	}
 
 	fan_fd = fanotify_init(FAN_CLASS_NOTIF, O_RDONLY | O_CLOEXEC);

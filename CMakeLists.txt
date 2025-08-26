@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(whatmade
-        VERSION 0.1.0
+        VERSION 0.1.1
         HOMEPAGE_URL "https://github.com/ANGulchenko/whatmade"
         DESCRIPTION "Whatmade is a Linux daemon that monitors user-specified directories and records which process created each file.")
 
