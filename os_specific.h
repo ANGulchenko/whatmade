@@ -1,7 +1,6 @@
-#pragma once
+#ifndef OS_SPECIFIC_H
+#define OS_SPECIFIC_H
 
-#include <print>
-#include <vector>
 #include <set>
 #include <iostream>
 #include <fstream>
@@ -17,7 +16,6 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/file.h>
-#include <limits.h>
 #include <filesystem>
 #include <functional>
 
@@ -113,18 +111,14 @@ std::optional<std::string>try_get_process_cmdline(pid_t pid)
 {
 	// Try /proc/[pid]/cmdline
 	{
-		std::stringstream path;
-		path << "/proc/" << pid << "/cmdline";
-		std::ifstream file(path.str(), std::ios::in | std::ios::binary);
+		std::string path = std::format("/proc/{}/cmdline", pid);
+		std::ifstream file(path, std::ios::in | std::ios::binary);
 		if (file)
 		{
 			std::string data((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 			if (!data.empty())
 			{
-				for (char &c : data)
-				{
-					if (c == '\0') c = ' ';
-				}
+				std::replace(data.begin(), data.end(), '\0', ' ');
 				return data;
 			}
 		}
@@ -132,24 +126,22 @@ std::optional<std::string>try_get_process_cmdline(pid_t pid)
 
 	// Try /proc/[pid]/exe (symlink to the binary)
 	{
-		char link_path[64];
-		snprintf(link_path, sizeof(link_path), "/proc/%d/exe", pid);
+		std::string link_path = std::format("/proc/{}/exe", pid);
+		std::error_code ec;
 
-		char exe_path[PATH_MAX];
-		ssize_t len = readlink(link_path, exe_path, sizeof(exe_path) - 1);
-		if (len > 0)
+		std::filesystem::path exe_path = std::filesystem::read_symlink(link_path, ec);
+		if (!ec)
 		{
-			exe_path[len] = '\0';
-			return std::string(exe_path);
+			return exe_path.string();
 		}
+
 	}
 
 	// Try /proc/[pid]/comm
 	// It is truncated to 16 chars. Better than nothing though.
 	{
-		std::stringstream path;
-		path << "/proc/" << pid << "/comm";
-		std::ifstream file(path.str());
+		std::string path = std::format("/proc/{}/comm", pid);
+		std::ifstream file(path);
 		if (file)
 		{
 			std::string line;
@@ -158,6 +150,20 @@ std::optional<std::string>try_get_process_cmdline(pid_t pid)
 				return line;
 			}
 		}
+	}
+
+	return std::nullopt;
+}
+
+std::optional<std::string> filename_from_fd(int fd)
+{
+	std::filesystem::path link_path = std::format("/proc/self/fd/{}", fd);
+	std::error_code ec;
+
+	std::filesystem::path file_path = std::filesystem::read_symlink(link_path, ec);
+	if (!ec)
+	{
+		return file_path.string();
 	}
 
 	return std::nullopt;
@@ -204,55 +210,36 @@ void handle_signal(int signum)
 	std::exit(signum);
 }
 
-std::vector<std::string> get_filenames_to_delete(const std::vector<std::string>& filenames)
-{
-	std::vector<std::string> result;
-	for (const auto& filename: filenames)
-	{
-		if (!std::filesystem::exists(filename))
-		{
-			result.push_back(filename);
-		}
-	}
-
-	return result;
-}
-
 void startWatch(const std::set<std::string>& paths_to_monitor,
-				const std::set<std::string>& paths_to_ignore,
 				std::function<void(const std::string& filename, const std::string& process_name)> file_processor)
 {
 
 	int fan_fd = fanotify_setup(paths_to_monitor);
 
-
 	char buffer[4096];
-	while (true) {
+	while (true)
+	{
 		ssize_t len = read(fan_fd, buffer, sizeof(buffer));
-		if (len <= 0) {
+		if (len <= 0)
+		{
 			perror("read");
 			continue;
 		}
 
-		struct fanotify_event_metadata *metadata;
-		metadata = (struct fanotify_event_metadata *)buffer;
-		while (FAN_EVENT_OK(metadata, len)) {
+		struct fanotify_event_metadata* metadata = reinterpret_cast<fanotify_event_metadata*>(buffer);
+
+		while (FAN_EVENT_OK(metadata, len))
+		{
 			if (metadata->fd >= 0 && metadata->mask & FAN_OPEN)
 			{
 				std::optional<std::string> app_name = try_get_process_cmdline(metadata->pid);
-				if (is_recent_creation(metadata->fd))
+				std::optional<std::string> file_name = filename_from_fd(metadata->fd);
+
+				if (app_name && file_name)
 				{
-					char path[PATH_MAX];
-					snprintf(path, sizeof(path), "/proc/self/fd/%d", metadata->fd);
-					char real_path[PATH_MAX];
-					//std::cout << real_path << " " << app_name << std::endl;
-					ssize_t r = readlink(path, real_path, sizeof(real_path) - 1);
-					if (r > 0) {
-						real_path[r] = '\0';
-						if (app_name)
-						{
-							file_processor(real_path, app_name.value());
-						}
+					if (is_recent_creation(metadata->fd))
+					{
+						file_processor(file_name.value(), app_name.value());
 					}
 				}
 				close(metadata->fd);
@@ -263,3 +250,6 @@ void startWatch(const std::set<std::string>& paths_to_monitor,
 
 	close(fan_fd);
 }
+
+
+#endif

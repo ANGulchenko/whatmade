@@ -44,6 +44,7 @@ void processFile(const std::string& filename, const std::string& process_name)
 
 int main(int argc, char *argv[])
 {
+
 	if (!XAttr::isWorking())
 	{
 		std::println("XATTR doesn't work");
@@ -72,13 +73,17 @@ int main(int argc, char *argv[])
 
 	if (!opt.hasOptions())
 	{
+		std::signal(SIGTERM, handle_signal);
+		std::signal(SIGINT,  handle_signal);
+		std::signal(SIGHUP,  handle_signal);
+
 		Imp::daemonize();
-		startWatch(ConfigSingleton::instance().paths_to_monitor, ConfigSingleton::instance().paths_to_ignore, processFile);
+		startWatch(ConfigSingleton::instance().paths_to_monitor, processFile);
 	}
 
 	if (opt.getFlag("non_daemonize") || opt.getFlag('n'))
 	{
-		startWatch(ConfigSingleton::instance().paths_to_monitor, ConfigSingleton::instance().paths_to_ignore, processFile);
+		startWatch(ConfigSingleton::instance().paths_to_monitor, processFile);
 	}
 
 	if (opt.getFlag("stop") || opt.getFlag('s'))
