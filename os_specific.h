@@ -172,7 +172,6 @@ std::optional<std::string> filename_from_fd(int fd)
 int fanotify_setup(const std::set<std::string>& paths_to_control)
 {
 	std::set<std::string>mount_points;
-	int fan_fd;
 
 	for(const std::string& path: paths_to_control)
 	{
@@ -180,7 +179,7 @@ int fanotify_setup(const std::set<std::string>& paths_to_control)
 		mount_points.insert(tmp_mnt_points.begin(), tmp_mnt_points.end());
 	}
 
-	fan_fd = fanotify_init(FAN_CLASS_NOTIF, O_RDONLY | O_CLOEXEC);
+	int fan_fd = fanotify_init(FAN_CLASS_NOTIF, O_RDONLY | O_CLOEXEC);
 	if (fan_fd < 0)
 	{
 		perror("fanotify_init: fan_fd < 0");

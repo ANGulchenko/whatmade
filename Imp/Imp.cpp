@@ -15,22 +15,7 @@ void Imp::stopDaemon()
 	{
 		kill(pid, SIGTERM);
 		Logger::info("SIGTERM signal sended to daemon. PID=", pid);
-		unlink(PID_FILE.c_str());
-	} else
-	{
-		Logger::error("No PID file found\n");
-	}
-}
-
-void Imp::askDaemonToRereadConfig()
-{
-	std::ifstream pid_file(PID_FILE);
-	pid_t pid;
-	if (pid_file >> pid)
-	{
-		kill(pid, SIGUSR1);
-		Logger::info("SIGUSR1 signal sended to daemon (ask for config reread). PID=", pid);
-		unlink(PID_FILE.c_str());
+		unlink(PID_FILE);
 	} else
 	{
 		Logger::error("No PID file found\n");
@@ -62,14 +47,14 @@ void Imp::cleanup()
 		if (pid != -1)
 		{
 			close(pid);
-			unlink(PID_FILE.c_str());
+			unlink(PID_FILE);
 		}
 	}
 }
 
 bool Imp::already_running()
 {
-	pid_t pid_fd = open(PID_FILE.c_str(), O_RDWR | O_CREAT, 0644);
+	pid_t pid_fd = open(PID_FILE, O_RDWR | O_CREAT, 0644);
 	if (pid_fd < 0)
 	{
 		Logger::error("Unable to open PID file.\n");
