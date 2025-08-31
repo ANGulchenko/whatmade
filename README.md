@@ -45,11 +45,20 @@ fields with **placeholders**. You must replace them with your data.
 
 ## Convenience?
 
+### Caja
 I offer you an extension for the Caja FM (from MATE DE, fork of Gnome 2) where you
 can just right-click on file and ask "What made this?" from a menu.
 Put the file in ~/.local/share/caja-python/extensions and restart the Caja ("caja -q")
 
 ![screenshot](./FM_Extensions/MATE-CAJA/whatmade_win.png)
+
+### Midnight Commander
+You can add a new entity to mc's User Menu (F2): ~/.config/mc/menu
+```
+w What process made this file?
+    whatmade -w "%p"
+```
+This code will add a new line in that menu with "w" shortkey.
 
 ## Dependencies?
 

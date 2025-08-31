@@ -1,0 +1,3 @@
+# Add these lines to mc's User menu config (~/.config/mc/menu most probably)
+w What process made this file?
+    whatmade -w "%p"
