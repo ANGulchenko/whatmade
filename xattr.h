@@ -8,7 +8,6 @@
 #include <sys/xattr.h>
 #include <cstring>
 #include <fstream>
-#include <print>
 
 class XAttr
 {
