@@ -1,3 +1,5 @@
+# Put the file in ~/.local/share/caja-python/extensions and restart the Caja ("caja -q")
+
 from gi.repository import Caja, GObject, Gtk
 import subprocess
 
@@ -24,10 +26,9 @@ class WhatMadeExtension(GObject.GObject, Caja.MenuProvider):
 
         # Call my daemon
         try:
-            result = subprocess.check_output(
-                ["whatmade", "-w", filepath], text=True
-            ).strip()
-            result = result[result.find('name:')+5:]
+            raw = subprocess.check_output(["whatmade", "-r", filepath])
+            result = raw.decode("utf-8", errors="replace")
+            result = result.replace("\0", " ")
         except Exception as e:
             result = f"Error: {e}"
 
