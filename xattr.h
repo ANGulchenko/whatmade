@@ -38,7 +38,8 @@ public:
 			result = false;
 		}
 
-		remove(path.c_str());
+		// Delete test file
+		std::remove(path.c_str());
 
 		return result;
 	}
@@ -51,6 +52,18 @@ public:
 		std::string correct_attr_name = std::string("user.") + name;
 		if (setxattr(path.c_str(), correct_attr_name.c_str(),
 					   value.data(), value.size(), flags) == -1)
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	static bool remove(const std::string& path,
+					const std::string& name)
+	{
+		std::string correct_attr_name = std::string("user.") + name;
+		if (removexattr(path.c_str(), correct_attr_name.c_str()) == -1)
 		{
 			return false;
 		}

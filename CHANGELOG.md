@@ -1,3 +1,13 @@
+## 0.2.0
+  - Backward compatibility is broken. Be careful.
+  - Now data uses \0 as a separator between process name and parameters instead 
+  of previously used space. It is important and will help to avoid any problems with
+  spaces in paths and process names.
+  - CLI is sligtly changed: -w is for human-readable output, -r for raw, script convenient, format.
+  - New -c "--clear" parameter for removing process data from single file or all files in directory (including subdirectories)
+  - New -d "--dir" parameter for printing out the short summary for the dir (process name, number of files, total size of those files)
+  - Some refactoring: mostly translating C to C++.
+
 ## 0.1.1
   - Mounting points from the subdirs of watched directories are now added automatically.
   So, if you have a mount point /home but want to watch the /home/user dir with all its 

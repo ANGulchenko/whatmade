@@ -118,7 +118,7 @@ std::optional<std::string>try_get_process_cmdline(pid_t pid)
 			std::string data((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 			if (!data.empty())
 			{
-				std::replace(data.begin(), data.end(), '\0', ' ');
+				//std::replace(data.begin(), data.end(), '\0', ' ');
 				return data;
 			}
 		}
@@ -248,6 +248,36 @@ void startWatch(const std::set<std::string>& paths_to_monitor,
 	}
 
 	close(fan_fd);
+}
+
+std::optional<std::vector<std::string>> getAllFilenamesFromDir(std::string dirname)
+{
+	if (!std::filesystem::is_directory(dirname))
+	{
+		return std::nullopt;
+	}
+
+	std::vector<std::string> result;
+
+	for (const auto& entry : std::filesystem::recursive_directory_iterator(dirname))
+	{
+		if (std::filesystem::is_regular_file(entry.path()))
+		{
+			result.push_back(entry.path());
+		}
+	}
+
+	return result;
+}
+
+uintmax_t getFileSize(const std::string& filename)
+{
+	return std::filesystem::file_size(filename);
+}
+
+bool isDir(const std::string& name)
+{
+	return std::filesystem::is_directory(name);
 }
 
 
