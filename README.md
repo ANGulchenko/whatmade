@@ -24,6 +24,31 @@ sudo systemctl enable whatmade.service
 sudo systemctl start whatmade.service
 ```
 
+## How to use?
+
+Copy the whatmade binary to somewhere covered with PATH environment path and run the daemon
+manually or through the provided systemd service script.
+
+It will create the config file /etc/whatmade/config.cfg with 2 arrays for 
+monitoring and ignoring directories. These directories include subdirectories 
+(including mount points if you have such) so no need to add them separately.
+
+Restart daemon to let it read the config. 
+
+That's all for configuration.
+
+### CLI
+
+    -h  --help                     Print parameters list
+    -w  --what <filename>          What created this file?(Human-redable format)
+    -r  --raw  <filename>          What created this file?(Raw format)
+    -d  --dir  <dirname>           Directory summary(including subdirectories)
+    Shows the table <process name> <number of files made by this process> <Total filesize>
+    -c  --clear <file/dirname>     Clears process saved data from file or all files in the dir
+    This only removes data from extended attributes that was previously written by this daemon
+    -n  --non_daemonize            Run without daemonizing(useful for running through systemd)
+    -s  --stop                     Stop and quit (useful if run as daemon)
+
 ## Nuances?
 
 Whatmade uses the Linux fanotify API, which can be a bit… unusual and doesn’t 
@@ -37,11 +62,6 @@ it provides should be interpreted with care — critical thinking is still
 advised when reviewing the results.
 
 This daemon stores process data in the Extended File Attributes.
-
-## Initial setup
-
-Upon the first start the daemon will create the config file and fill the monitor/ignore
-fields with **placeholders**. You must replace them with your data. 
 
 ## Convenience?
 
