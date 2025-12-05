@@ -21,16 +21,31 @@
 
 #include "Imp/Imp.h"
 
+bool is_recent_creation_statx(const std::string& filename)
+{
+	struct statx stx;
 
-bool is_recent_creation(int fd)
+	statx(AT_FDCWD, filename.c_str(), AT_STATX_SYNC_AS_STAT, STATX_BASIC_STATS | STATX_BTIME, &stx);
+	if (stx.stx_mask & STATX_BTIME)
+	{
+		time_t now = time(nullptr);
+		return (now - stx.stx_btime.tv_sec) < 2;
+	}
+
+	return false;
+}
+
+
+/*bool is_recent_creation(int fd)
 {
 	struct stat st;
+
 	if (fstat(fd, &st) == -1)
 		return false;
 
 	time_t now = time(nullptr);
 	return (now - st.st_ctime) < 2;  // Created within last 2 seconds
-}
+}*/
 
 std::set<std::string> get_mount_point(const std::string &path)
 {
@@ -236,7 +251,7 @@ void startWatch(const std::set<std::string>& paths_to_monitor,
 
 				if (app_name && file_name)
 				{
-					if (is_recent_creation(metadata->fd))
+					if (is_recent_creation_statx(file_name.value()))
 					{
 						file_processor(file_name.value(), app_name.value());
 					}

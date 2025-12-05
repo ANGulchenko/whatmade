@@ -1,3 +1,10 @@
+## 0.2.1
+  - It is a very important update, but it doesn't break the backward compatibily
+  - Stat was replaced with statx;
+  this should drastically decrease false positives when detecting file creation: statx 
+  knows about creation date white stat knows only about node changing which happens 
+  a lot because of many reasons that have nothing to do with file creation.
+
 ## 0.2.0
   - Backward compatibility is broken. Be careful.
   - Now data uses \0 as a separator between process name and parameters instead 
