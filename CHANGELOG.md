@@ -2,7 +2,7 @@
   - It is a very important update, but it doesn't break the backward compatibily
   - Stat was replaced with statx;
   this should drastically decrease false positives when detecting file creation: statx 
-  knows about creation date white stat knows only about node changing which happens 
+  knows about creation date, while stat knows only about node changing which happens 
   a lot because of many reasons that have nothing to do with file creation.
 
 ## 0.2.0
